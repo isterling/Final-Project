@@ -17,7 +17,11 @@ Perhaps the biggest challenge is the code itself. I am basically learning how to
 ### Timeline:
 
  Week 1 (Nov. 11) - Assemble parts on breadboard, download and dissect libraries, figure out code structure. 
+ 
  Week 2 (Nov. 18) - Coding
+ 
  Week 3 (Nov. 25) - Coding and Hardware
+ 
  Week 4 (Dec. 2) - Hardware, design and 3D print enclosure if possible
+ 
  Week 5 (Dec. 9) - Present to class
