@@ -14,7 +14,6 @@
 
 //A port of my original JustBasic Cube_3D demo to the Arduino Uno using U8G library.
 
-#include "U8glib.h"
 
 
 ////////////////////////////////
@@ -125,33 +124,35 @@ void loop(void)
   if (rot[2] >= 360.0) rot[2] = 0;
 
   u8g.firstPage();
+  do {
+    //picture loop
+    for (int i = 0; i < 8; i++) {
+      //rotateY
+      rotx = cos(rot[0]) * cube_vertex[i][2] + sin(rot[0]) * cube_vertex[i][0];
+      roty = cube_vertex[i][1];
+      rotz = -sin(rot[0]) * cube_vertex[i][2] + cos(rot[0]) * cube_vertex[i][0];
+      //rotateX
+      rotxx = rotx;
+      rotyy = cos(rot[1]) * roty - sin(rot[1]) * rotz;
+      rotzz = sin(rot[1]) * roty + cos(rot[1]) * rotz;
+      //rotateZ
+      rotxxx = cos(rot[2]) * rotxx - sin(rot[2]) * rotyy;
+      rotyyy = sin(rot[2]) * rotxx + cos(rot[2]) * rotyy;
+      rotzzz = rotzz;
 
-  //picture loop
-  for (int i = 0; i < 8; i++) {
-    //rotateY
-    rotx = cos(rot[0]) * cube_vertex[i][2] + sin(rot[0]) * cube_vertex[i][0];
-    roty = cube_vertex[i][1];
-    rotz = -sin(rot[0]) * cube_vertex[i][2] + cos(rot[0]) * cube_vertex[i][0];
-    //rotateX
-    rotxx = rotx;
-    rotyy = cos(rot[1]) * roty - sin(rot[1]) * rotz;
-    rotzz = sin(rot[1]) * roty + cos(rot[1]) * rotz;
-    //rotateZ
-    rotxxx = cos(rot[2]) * rotxx - sin(rot[2]) * rotyy;
-    rotyyy = sin(rot[2]) * rotxx + cos(rot[2]) * rotyy;
-    rotzzz = rotzz;
+      //orthographic projection
+      rotxxx = rotxxx + originx;
+      rotyyy = rotyyy + originy;
 
-    //orthographic projection
-    rotxxx = rotxxx + originx;
-    rotyyy = rotyyy + originy;
+      //store new vertices values for wireframe drawing
+      wireframe[i][0] = rotxxx;
+      wireframe[i][1] = rotyyy;
+      wireframe[i][2] = rotzzz;
 
-    //store new vertices values for wireframe drawing
-    wireframe[i][0] = rotxxx;
-    wireframe[i][1] = rotyyy;
-    wireframe[i][2] = rotzzz;
-
-    draw_vertices();
+      draw_vertices();
+    }
+    draw_wireframe();
   }
-  draw_wireframe();
   while (u8g.nextPage());
 }
+
