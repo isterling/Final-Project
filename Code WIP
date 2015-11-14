@@ -140,7 +140,6 @@ void loop(void)
     rotxxx = cos(rot[2]) * rotxx - sin(rot[2]) * rotyy;
     rotyyy = sin(rot[2]) * rotxx + cos(rot[2]) * rotyy;
     rotzzz = rotzz;
-  }
 
     //orthographic projection
     rotxxx = rotxxx + originx;
@@ -153,8 +152,6 @@ void loop(void)
 
     draw_vertices();
   }
-
   draw_wireframe();
-
   while (u8g.nextPage());
 }
