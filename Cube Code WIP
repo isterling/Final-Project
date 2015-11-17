@@ -14,6 +14,7 @@
 
 //A port of my original JustBasic Cube_3D demo to the Arduino Uno using U8G library.
 
+#include "U8glib.h"
 
 
 ////////////////////////////////
@@ -39,7 +40,7 @@ Adafruit_BNO055 bno = Adafruit_BNO055(55);
 
 //The following line will need changing depending on your board type!
 U8GLIB_LD7032_60x32 u8g(13, 11, 10, 9, 8);  // SPI Com: SCK = 13, MOSI = 11, CS = 10, A0 = 9, RST = 8
-
+uint8_t draw_state = 0;
 float tx, nx, p;
 float ty, ny, py;
 float rot, rotx, roty, rotz, rotxx, rotyy, rotzz, rotxxx, rotyyy, rotzzz;
@@ -50,26 +51,57 @@ int wireframe[12][2];
 int originx = 32;
 int originy = 15; //32
 
-int front_depth = 5;
-int back_depth = -5;
+int front_depth = 9;
+int back_depth = -9;
+
+boolean splashOver = false;
 
 //Store cube vertices
 int cube_vertex[8][3] = {
-  { -5, -5, front_depth},
-  {5, -5, front_depth},
-  {5, 5, front_depth},
-  { -5, 5, front_depth},
-  { -5, -5, back_depth},
-  {5, -5, back_depth},
-  {5, 5, back_depth},
-  { -5, 5, back_depth}
+  { -9, -9, front_depth},
+  {9, -9, front_depth},
+  {9, 9, front_depth},
+  { -9, 9, front_depth},
+  { -9, -9, back_depth},
+  {9, -9, back_depth},
+  {9, 9, back_depth},
+  { -9, 9, back_depth}
 };
 
 int fd = 0; //0=orthographic
 
+
+////////////////////////////////
+//////////SPLASH SCREEN/////////
+////////////////////////////////
+
+#define u8g_logo_width 60/8
+#define u8g_logo_height 32
+
+const unsigned char PROGMEM CCA_logo [] = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0xE0, 0x07, 0xC0, 0x3F, 0xF8, 0x00,
+  0x0F, 0xF8, 0x1F, 0xF0, 0x3F, 0xF8, 0x00, 0x1E, 0x38, 0x3C, 0x70, 0x00, 0x18, 0x00, 0x18, 0x08,
+  0x30, 0x10, 0x00, 0x18, 0x00, 0x30, 0x00, 0x60, 0x00, 0x00, 0x18, 0x00, 0x30, 0x00, 0x60, 0x00,
+  0x3E, 0x18, 0x00, 0x60, 0x00, 0xC0, 0x00, 0x7F, 0x18, 0x00, 0x60, 0x00, 0xC0, 0x00, 0xE3, 0x98,
+  0x00, 0x60, 0x00, 0xC0, 0x01, 0xC1, 0xC8, 0x00, 0x60, 0x00, 0xC0, 0x01, 0x80, 0xC8, 0x00, 0x70,
+  0x00, 0xE0, 0x01, 0x80, 0xC8, 0x00, 0x30, 0x00, 0x60, 0x01, 0x80, 0xC8, 0x00, 0x18, 0x08, 0x30,
+  0x11, 0xC1, 0xD8, 0x00, 0x1E, 0x38, 0x3C, 0x70, 0xE3, 0x98, 0x00, 0x0F, 0xF8, 0x1F, 0xF0, 0x7F,
+  0x18, 0x00, 0x03, 0xF0, 0x07, 0xE0, 0x1C, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x0D, 0x27, 0x04, 0x72, 0xF3, 0x4F, 0x3D, 0x96, 0x76, 0x59, 0x77, 0xED, 0x1A, 0x4A, 0x9B, 0x94
+};
+
+
+
+
 void setup(void)
 {
-
+  Serial.begin(9600);
   u8g.begin();
 
   //loop picture
@@ -85,6 +117,8 @@ void draw_vertices(void)
 {
   u8g.drawPixel (rotxxx, rotyyy);
 }
+
+
 
 void draw_wireframe(void) {
 
@@ -111,48 +145,72 @@ void draw_wireframe(void) {
 
 }
 
-void loop(void)
-{
-  //Read BNO055 sensor
-  /* Get a new sensor event */
-  sensors_event_t event;
-  bno.getEvent(&event);
+void loop(void) {
 
-  float rot[] = {(event.orientation.y / 15.0 * -1), event.orientation.x / 15.0, event.orientation.z / 15.0 + 100};
-  if (rot[0] >= 360.0) rot[0] = 0;
-  if (rot[1] >= 360.0) rot[1] = 0;
-  if (rot[2] >= 360.0) rot[2] = 0;
-
-  u8g.firstPage();
-  do {
-    //picture loop
-    for (int i = 0; i < 8; i++) {
-      //rotateY
-      rotx = cos(rot[0]) * cube_vertex[i][2] + sin(rot[0]) * cube_vertex[i][0];
-      roty = cube_vertex[i][1];
-      rotz = -sin(rot[0]) * cube_vertex[i][2] + cos(rot[0]) * cube_vertex[i][0];
-      //rotateX
-      rotxx = rotx;
-      rotyy = cos(rot[1]) * roty - sin(rot[1]) * rotz;
-      rotzz = sin(rot[1]) * roty + cos(rot[1]) * rotz;
-      //rotateZ
-      rotxxx = cos(rot[2]) * rotxx - sin(rot[2]) * rotyy;
-      rotyyy = sin(rot[2]) * rotxx + cos(rot[2]) * rotyy;
-      rotzzz = rotzz;
-
-      //orthographic projection
-      rotxxx = rotxxx + originx;
-      rotyyy = rotyyy + originy;
-
-      //store new vertices values for wireframe drawing
-      wireframe[i][0] = rotxxx;
-      wireframe[i][1] = rotyyy;
-      wireframe[i][2] = rotzzz;
-
-      draw_vertices();
+  if (splashOver == false) {
+    Serial.print("draw_state: ");
+    Serial.println(draw_state);
+    u8g.firstPage();
+    do {
+      draw();
     }
-    draw_wireframe();
+    while ( u8g.nextPage() );
+    draw_state++;
+
+    if ( draw_state >= 0) {
+      splashOver = true;
+    }
+    delay(4000);
+
+  } else {
+    //Read BNO055 sensor
+    /* Get a new sensor event */
+    sensors_event_t event;
+
+
+    bno.getEvent(&event);
+
+    float rot[] = {(event.orientation.y / 30.0 * -1), event.orientation.x / 30.0, event.orientation.z / 30.0};
+    if (rot[0] >= 360.0) rot[0] = 0;
+    if (rot[1] >= 360.0) rot[1] = 0;
+    if (rot[2] >= 360.0) rot[2] = 0;
+
+    u8g.firstPage();
+    do {
+      //picture loop
+      for (int i = 0; i < 8; i++) {
+        //rotateY
+        rotx = cos(rot[0]) * cube_vertex[i][2] + sin(rot[0]) * cube_vertex[i][0];
+        roty = cube_vertex[i][1];
+        rotz = -sin(rot[0]) * cube_vertex[i][2] + cos(rot[0]) * cube_vertex[i][0];
+        //rotateX
+        rotxx = rotx;
+        rotyy = cos(rot[1]) * roty - sin(rot[1]) * rotz;
+        rotzz = sin(rot[1]) * roty + cos(rot[1]) * rotz;
+        //rotateZ
+        rotxxx = cos(rot[2]) * rotxx - sin(rot[2]) * rotyy;
+        rotyyy = sin(rot[2]) * rotxx + cos(rot[2]) * rotyy;
+        rotzzz = rotzz;
+
+        //orthographic projection
+        rotxxx = rotxxx + originx;
+        rotyyy = rotyyy + originy;
+
+        //store new vertices values for wireframe drawing
+        wireframe[i][0] = rotxxx;
+        wireframe[i][1] = rotyyy;
+        wireframe[i][2] = rotzzz;
+
+        draw_vertices();
+      }
+      draw_wireframe();
+    } while (u8g.nextPage());
+
   }
-  while (u8g.nextPage());
 }
 
+void draw(void) {
+  switch (draw_state >> 0) {
+    case 0: u8g.drawBitmapP( 0, 0, u8g_logo_width , u8g_logo_height, CCA_logo); break;
+  }
+}
