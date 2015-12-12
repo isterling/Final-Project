@@ -1,3 +1,6 @@
+#IMAGES AND SCHEMATIC IN ISSUES SECTION
+
+
 # Final-Project
 
 ## Project name: Eyeduino
