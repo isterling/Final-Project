@@ -10,9 +10,6 @@ I am going to make an Arduino-powered head mounted display (HMD) unit akin to go
 
 BNO055 Absolute Orientation Sensor, OLED Display, 3V Pro Trinket, Adafruit Pro Trinket LiIon/LiPoly Backpack Add-On, Power Switch, Prism Lens, Shop Glasses
 
-### Challenges: 
-
-Perhaps the biggest challenge is the code itself. I am basically learning how to use an obscure graphics library (u8glib), Adafruit unified sensor library, and the BNO055 specific library in order to make this work. What else is challenging is figuring out how to have the rotation matrix of the cube depend upon the X, Y, Z values (in degrees). This requires a lot of float arrays, as well as translating the rotation matrix of Euler angles into code. The hardware portion is not so difficult as I have already ordered, received, and soldered all my parts, as well as put together a Fritzing guide for wiring. 
 
 ### Timeline:
 
@@ -57,8 +54,8 @@ Using some industrial strength velcro and a pair of shop glasses I took from CCA
 
 
 
-# Component Parts:
-BNO055 Absolute Orientation Sensor, OLED Display, 3V Pro Trinket, Adafruit Pro Trinket LiIon/LiPoly Backpack Add-On, Power Switch, Prism Lens, Shop Glasses
+# Used Component Parts:
+BNO055 Absolute Orientation Sensor, OLED Display, Arduino Nano, Prism Lens, Shop Glasses
 Challenges:
 Perhaps the biggest challenge is the code itself. I was learning how to use an obscure graphics library (u8glib), Adafruit unified sensor library, and the BNO055 specific library in order to make this work. What else was challenging was figuring out how to have the rotation matrix of the cube depend upon the X, Y, Z values (in degrees). This required a lot of float arrays, as well as translating the rotation matrix of Euler angles into code. 
  
